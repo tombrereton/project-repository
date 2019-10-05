@@ -1,0 +1,13 @@
+The Task:
+
+
+Create an in memory implementation of IRepository<T> 
+
+
+Hints:
+
+The solution should be developed in a Test Driven approach, we expect the code you write to have excellent unit test coverage.
+
+Keep the solution simple, we value simple architecture and SOLID principles, but we're not looking for over engineered design.
+
+The code should be self-explanatory, documentation should not be required to understand the code.
