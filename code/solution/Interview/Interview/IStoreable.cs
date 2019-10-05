@@ -6,5 +6,4 @@ namespace Interview
     {
         IComparable Id { get; set; }
     }
-    
 }

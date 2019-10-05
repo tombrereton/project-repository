@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Interview.Tests
 {
     [TestFixture]
-    internal class InMemoryRepositoryShould
+    public class InMemoryRepositoryShould
     {
         [Test]
         public void ProvideAllEntitiesAsCorrectType()
@@ -16,6 +16,20 @@ namespace Interview.Tests
             var actual = repository.All();
 
             actual.Should().BeOfType<List<Storeable>>();
+        }
+
+        [Test]
+        public void ProvideAllEntities()
+        {
+            var repository = new InMemoryRepository<Storeable>();
+            var storeable = new Storeable { Id = 1 };
+            var secondStoreable = new Storeable { Id = 2 };
+            repository.Save(storeable);
+            repository.Save(secondStoreable);
+
+            var actual = repository.All();
+
+            actual.Should().HaveCount(2);
         }
 
         [Test]
@@ -114,39 +128,5 @@ namespace Interview.Tests
             deleteAct.Should().NotThrow<Exception>();
         }
 
-    }
-
-    internal class InMemoryRepository<T> : IRepository<T>, IDataContext<T> where T : IStoreable
-    {
-        public InMemoryRepository()
-        {
-            Data = new List<T>();
-        }
-
-        public IEnumerable<T> All()
-        {
-            return Data;
-        }
-
-        public void Delete(IComparable id)
-        {
-            var entity = FindById(id);
-            Data.Remove(entity);
-        }
-
-        public void Save(T item)
-        {
-            if (FindById(item.Id) == null)
-            {
-                Data.Add(item);
-            }
-        }
-
-        public T FindById(IComparable id)
-        {
-            return Data.Find(entity => entity.Id.Equals(id));
-        }
-
-        public List<T> Data { get; set; }
     }
 }
