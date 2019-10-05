@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Interview
+namespace Interview.Tests
 {
     [TestFixture]
     internal class InMemoryRepositoryShould
