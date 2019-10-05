@@ -2,7 +2,7 @@ using System;
 
 namespace Interview
 {
-    public  class InMemoryImplementation : IStoreable
+    public  class Storeable : IStoreable
     {
         public IComparable Id { get; set; }
     }
