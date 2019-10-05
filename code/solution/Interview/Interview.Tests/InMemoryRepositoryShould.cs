@@ -127,6 +127,5 @@ namespace Interview.Tests
 
             deleteAct.Should().NotThrow<Exception>();
         }
-
     }
 }
