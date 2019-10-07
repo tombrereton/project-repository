@@ -3,37 +3,38 @@ using System.Collections.Generic;
 
 namespace Interview
 {
-    public class InMemoryRepository<T> : IRepository<T>, IDataContext<T> where T : IStoreable
+    public class InMemoryRepository<T> : IRepository<T> where T : IStoreable
     {
-        public InMemoryRepository()
+        private readonly IDataContext<T> _context;
+
+        public InMemoryRepository(IDataContext<T> context)
         {
-            Data = new List<T>();
+            _context = context;
         }
 
         public IEnumerable<T> All()
         {
-            return Data;
+            return _context.Data;
         }
 
         public void Delete(IComparable id)
         {
             var entity = FindById(id);
-            Data.Remove(entity);
+            _context.Data.Remove(entity);
         }
 
         public void Save(T item)
         {
             if (FindById(item.Id) == null)
             {
-                Data.Add(item);
+                _context.Data.Add(item);
             }
         }
 
         public T FindById(IComparable id)
         {
-            return Data.Find(entity => entity.Id.Equals(id));
+            return _context.Data.Find(entity => entity.Id.Equals(id));
         }
 
-        public List<T> Data { get; set; }
     }
 }

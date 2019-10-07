@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 
 namespace Interview.Tests
@@ -8,123 +9,131 @@ namespace Interview.Tests
     [TestFixture]
     public class InMemoryRepositoryShould
     {
+        private Mock<IDataContext<InMemoryImplementation>> _context;
+        private InMemoryRepository<InMemoryImplementation> _repository;
+
+        [SetUp]
+        public void Setup()
+        {
+            _context = new Mock<IDataContext<InMemoryImplementation>>();
+            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
+        }
+
         [Test]
         public void ProvideAllEntitiesAsCorrectType()
         {
-            var repository = new InMemoryRepository<Storeable>();
+            _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
 
-            var actual = repository.All();
+            var actual = _repository.All();
 
-            actual.Should().BeOfType<List<Storeable>>();
+            actual.Should().BeOfType<List<InMemoryImplementation>>();
         }
 
         [Test]
         public void ProvideAllEntities()
         {
-            var repository = new InMemoryRepository<Storeable>();
-            var storeable = new Storeable { Id = 1 };
-            var secondStoreable = new Storeable { Id = 2 };
-            repository.Save(storeable);
-            repository.Save(secondStoreable);
+            var storeable = new InMemoryImplementation { Id = 1 };
+            var secondStoreable = new InMemoryImplementation { Id = 2 };
+            var storeables = new List<InMemoryImplementation> { storeable, secondStoreable };
+            _context.Setup(context => context.Data).Returns(storeables);
 
-            var actual = repository.All();
+            var actual = _repository.All();
 
             actual.Should().HaveCount(2);
         }
-
+        
         [Test]
         public void StoreAndPersistAnEntity()
         {
-            var repository = new InMemoryRepository<Storeable>();
-            var storeable = new Storeable { Id = 1 };
-            repository.Save(storeable);
+            var storeable = new InMemoryImplementation { Id = 1 };
+            _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
 
-            var actual = repository.All();
+            _repository.Save(storeable);
+            var actual = _repository.All();
 
             actual.Should().Contain(storeable);
         }
-
+        
         [Test]
         public void FindEntity()
         {
-            var repository = new InMemoryRepository<Storeable>();
             const int entityId = 1;
-            var storeable = new Storeable { Id = entityId };
-            repository.Save(storeable);
-
-            var actual = repository.FindById(entityId);
-
+            var storeable = new InMemoryImplementation { Id = entityId };
+            var storeables = new List<InMemoryImplementation> { storeable };
+            _context.Setup(context => context.Data).Returns(storeables);
+        
+            var actual = _repository.FindById(entityId);
+        
             actual.Should().BeSameAs(storeable);
         }
-
+        
         [Test]
         public void FindCorrectEntity()
         {
-            var repository = new InMemoryRepository<Storeable>();
             const int entityId = 1;
             const int secondEntityId = 2;
-            var storeable = new Storeable { Id = entityId };
-            var secondStoreable = new Storeable { Id = secondEntityId };
-            repository.Save(storeable);
-            repository.Save(secondStoreable);
-
-            var actual = repository.FindById(secondEntityId);
-
+            var storeable = new InMemoryImplementation { Id = entityId };
+            var secondStoreable = new InMemoryImplementation { Id = secondEntityId };
+            var storeables = new List<InMemoryImplementation> { storeable, secondStoreable };
+            _context.Setup(context => context.Data).Returns(storeables);
+        
+            var actual = _repository.FindById(secondEntityId);
+        
             actual.Should().BeSameAs(secondStoreable);
         }
-
+        
         [Test]
         public void NotStoreADuplicateEntity()
         {
-            var repository = new InMemoryRepository<Storeable>();
-            var storeable = new Storeable { Id = 1 };
-            var duplicateStoreable = new Storeable { Id = 1 };
-            repository.Save(storeable);
-            repository.Save(duplicateStoreable);
-
-            var actual = repository.All();
-
+            const int entityId = 1;
+            var storeable = new InMemoryImplementation { Id = entityId };
+            var duplicateStoreable = new InMemoryImplementation { Id = entityId };
+            var storeables = new List<InMemoryImplementation> { storeable };
+            _context.Setup(context => context.Data).Returns(storeables);
+            
+            _repository.Save(duplicateStoreable);
+            var actual = _repository.All();
+        
             actual.Should().NotContain(duplicateStoreable);
         }
         
         [Test]
         public void RemoveAnEntity()
         {
-            var repository = new InMemoryRepository<Storeable>();
             const int entityId = 1;
-            var storeable = new Storeable { Id = entityId };
-            repository.Save(storeable);
-            repository.Delete(entityId);
+            var storeable = new InMemoryImplementation { Id = entityId };
+            var storeables = new List<InMemoryImplementation> { storeable };
+            _context.Setup(context => context.Data).Returns(storeables);
 
-            var actual = repository.All();
+            _repository.Delete(entityId);
+            var actual = _repository.All();
         
             actual.Should().NotContain(storeable);
         }
-
+        
         [Test]
         public void RemoveCorrectEntity()
         {
-            var repository = new InMemoryRepository<Storeable>();
             const int entityId = 1;
             const int secondEntityId = 2;
-            var storeable = new Storeable { Id = entityId };
-            var secondStoreable = new Storeable(){Id = secondEntityId};
-            repository.Save(storeable);
-            repository.Save(secondStoreable);
-            repository.Delete(secondEntityId);
+            var storeable = new InMemoryImplementation { Id = entityId };
+            var secondStoreable = new InMemoryImplementation { Id = secondEntityId };
+            var storeables = new List<InMemoryImplementation> { storeable, secondStoreable };
+            _context.Setup(context => context.Data).Returns(storeables);
 
-            var actual = repository.All();
+            _repository.Delete(secondEntityId);
+            var actual = _repository.All();
         
             actual.Should().NotContain(secondStoreable);
         }
-
+        
         [Test]
         public void HandleRemovingAnEntityThatDoesNotExist()
         {
-            var repository = new InMemoryRepository<Storeable>();
-
-            Action deleteAct = () => repository.Delete(1);
-
+            _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
+        
+            Action deleteAct = () => _repository.Delete(1);
+        
             deleteAct.Should().NotThrow<Exception>();
         }
     }
