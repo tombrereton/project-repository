@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+// ReSharper disable InconsistentlySynchronizedField
 
 namespace Interview
 {
     public class InMemoryRepository<T> : IRepository<T> where T : IStoreable
     {
         private readonly IDataContext<T> _context;
+        private readonly object _contextLock;
 
         public InMemoryRepository(IDataContext<T> context)
         {
             _context = context;
+            _contextLock = new object();
         }
 
         public IEnumerable<T> All()
@@ -19,15 +22,21 @@ namespace Interview
 
         public void Delete(IComparable id)
         {
-            var entity = FindById(id);
-            _context.Data.Remove(entity);
+            lock (_contextLock)
+            {
+                var entity = FindById(id);
+                _context.Data.Remove(entity);
+            }
         }
 
         public void Save(T item)
         {
             if (FindById(item.Id) == null)
             {
-                _context.Data.Add(item);
+                lock (_contextLock)
+                {
+                    _context.Data.Add(item);
+                }
             }
         }
 
@@ -35,6 +44,5 @@ namespace Interview
         {
             return _context.Data.Find(entity => entity.Id.Equals(id));
         }
-
     }
 }
