@@ -18,12 +18,12 @@ namespace Interview.Tests
         public void Setup()
         {
             _context = new Mock<IDataContext<InMemoryImplementation>>();
+            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
         }
 
         [Test]
         public void ProvideAllEntitiesAsCorrectType()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
 
             var actual = _repository.All();
@@ -34,7 +34,6 @@ namespace Interview.Tests
         [Test]
         public void ProvideAllEntities()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             var storeable = new InMemoryImplementation { Id = 1 };
             var secondStoreable = new InMemoryImplementation { Id = 2 };
             var storeables = new List<InMemoryImplementation> { storeable, secondStoreable };
@@ -48,7 +47,6 @@ namespace Interview.Tests
         [Test]
         public void StoreAndPersistAnEntity()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             var storeable = new InMemoryImplementation { Id = 1 };
             _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
 
@@ -61,7 +59,6 @@ namespace Interview.Tests
         [Test]
         public void FindEntity()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             const int entityId = 1;
             var storeable = new InMemoryImplementation { Id = entityId };
             var storeables = new List<InMemoryImplementation> { storeable };
@@ -75,7 +72,6 @@ namespace Interview.Tests
         [Test]
         public void FindCorrectEntity()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             const int entityId = 1;
             const int secondEntityId = 2;
             var storeable = new InMemoryImplementation { Id = entityId };
@@ -91,7 +87,6 @@ namespace Interview.Tests
         [Test]
         public void NotStoreADuplicateEntity()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             const int entityId = 1;
             var storeable = new InMemoryImplementation { Id = entityId };
             var duplicateStoreable = new InMemoryImplementation { Id = entityId };
@@ -107,7 +102,6 @@ namespace Interview.Tests
         [Test]
         public void RemoveAnEntity()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             const int entityId = 1;
             var storeable = new InMemoryImplementation { Id = entityId };
             var storeables = new List<InMemoryImplementation> { storeable };
@@ -122,7 +116,6 @@ namespace Interview.Tests
         [Test]
         public void RemoveCorrectEntity()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             const int entityId = 1;
             const int secondEntityId = 2;
             var storeable = new InMemoryImplementation { Id = entityId };
@@ -139,7 +132,6 @@ namespace Interview.Tests
         [Test]
         public void HandleRemovingAnEntityThatDoesNotExist()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
 
             Action deleteAct = () => _repository.Delete(1);
@@ -150,7 +142,6 @@ namespace Interview.Tests
         [Test]
         public void AddAllProductWhenAccessedByMultipleThreads()
         {
-            _repository = new InMemoryRepository<InMemoryImplementation>(_context.Object);
             _context.Setup(context => context.Data).Returns(new List<InMemoryImplementation>());
             var list1 = BuildTestListOfStoreable(0, 1000);
             var list2 = BuildTestListOfStoreable(1000, 2000);
@@ -172,8 +163,7 @@ namespace Interview.Tests
         public void DeleteAllProductsWhenAccessedByMultipleThreads()
         {
             var list1 = BuildTestListOfStoreable(0, 1000);
-            IDataContext<InMemoryImplementation> context = new TestDataContext() { Data = list1 };
-            _repository = new InMemoryRepository<InMemoryImplementation>(context);
+            _context.Setup(context => context.Data).Returns(list1);
 
             var thread1 = new Thread(() => DeleteStoreablesFromRepository(0, 500));
             var thread2 = new Thread(() => DeleteStoreablesFromRepository(500, 1000));
@@ -204,7 +194,6 @@ namespace Interview.Tests
             {
                 var storeable = new InMemoryImplementation { Id = i };
                 storeables.Add(storeable);
-
             }
 
             return storeables;
